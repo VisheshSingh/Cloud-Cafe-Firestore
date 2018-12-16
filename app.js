@@ -26,17 +26,35 @@ function render(doc) {
   // DELETING DATA
   cross.addEventListener("click", e => {
     let id = e.target.parentElement.getAttribute("data-id");
-    db.collection("cafes")
-      .doc(id)
-      .delete();
+    if (confirm("Are you sure?")) {
+      db.collection("cafes")
+        .doc(id)
+        .delete();
+    }
   });
 }
 // GETTING DATA
+// db.collection("cafes")
+//   .orderBy("name")
+//   .get()
+//   .then(snapshot => {
+//     snapshot.docs.forEach(doc => {
+//       render(doc);
+//     });
+//   });
+
+// REAL-TIME DATA LISTENER
 db.collection("cafes")
-  .get()
-  .then(snapshot => {
-    snapshot.docs.forEach(doc => {
-      render(doc);
+  .orderBy("city")
+  .onSnapshot(snapshot => {
+    let changes = snapshot.docChanges();
+    changes.forEach(change => {
+      if (change.type === "added") {
+        render(change.doc);
+      } else if (change.type === "removed") {
+        let li = cafeList.querySelector(`[data-id="${change.doc.id}"]`);
+        cafeList.removeChild(li);
+      }
     });
   });
 
